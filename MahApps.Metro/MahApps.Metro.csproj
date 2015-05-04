@@ -96,7 +96,9 @@
     <Compile Include="Controls\Dialogs\DialogManager.cs" />
     <Compile Include="Controls\Dialogs\DialogStateChangedEventArgs.cs" />
     <Compile Include="Controls\Dialogs\InputDialog.cs" />
+    <Compile Include="Controls\Dialogs\ChangePasswordDialog.cs" />
     <Compile Include="Controls\Dialogs\LoginDialog.cs" />
+    <Compile Include="Controls\Dialogs\PasswordDialog.cs" />
     <Compile Include="Controls\Dialogs\ProgressDialog.cs" />
     <Compile Include="Controls\Dialogs\ProgressDialogController.cs" />
     <Compile Include="Controls\Dialogs\CustomDialog.cs" />
@@ -476,9 +478,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Themes\Dialogs\ChangePasswordDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Themes\Dialogs\LoginDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\Dialogs\PasswordDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Themes\Dialogs\ProgressDialog.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -11,6 +11,140 @@ namespace MahApps.Metro.Controls.Dialogs
     public static class DialogManager
     {
         /// <summary>
+        /// Creates a ChangePasswordDialog inside of the current window.
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="title"></param>
+        /// <param name="message"></param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public static Task<ChangePasswordDialogData> ShowChangePasswordAsync(this MetroWindow window, string title, string message, ChangePasswordDialogSettings settings = null)
+        {
+            window.Dispatcher.VerifyAccess();
+            return HandleOverlayOnShow(settings, window).ContinueWith(z =>
+            {
+                return (Task<ChangePasswordDialogData>)window.Dispatcher.Invoke(new Func<Task<ChangePasswordDialogData>>(() =>
+                {
+                    if (settings == null)
+                    {
+                        settings = new ChangePasswordDialogSettings();
+                    }
+
+                    //create the dialog control
+                    ChangePasswordDialog dialog = new ChangePasswordDialog(window, settings)
+                    {
+                        Title = title,
+                        Message = message
+                    };
+
+                    SizeChangedEventHandler sizeHandler = SetupAndOpenDialog(window, dialog);
+                    dialog.SizeChangedHandler = sizeHandler;
+
+                    return dialog.WaitForLoadAsync().ContinueWith(x =>
+                    {
+                        if (DialogOpened != null)
+                        {
+                            window.Dispatcher.BeginInvoke(new Action(() => DialogOpened(window, new DialogStateChangedEventArgs())));
+                        }
+
+                        return dialog.WaitForButtonPressAsync().ContinueWith(y =>
+                        {
+                            //once a button as been clicked, begin removing the dialog.
+
+                            dialog.OnClose();
+
+                            if (DialogClosed != null)
+                            {
+                                window.Dispatcher.BeginInvoke(new Action(() => DialogClosed(window, new DialogStateChangedEventArgs())));
+                            }
+
+                            Task closingTask = (Task)window.Dispatcher.Invoke(new Func<Task>(() => dialog._WaitForCloseAsync()));
+                            return closingTask.ContinueWith(a =>
+                            {
+                                return ((Task)window.Dispatcher.Invoke(new Func<Task>(() =>
+                                {
+                                    window.SizeChanged -= sizeHandler;
+
+                                    window.metroDialogContainer.Children.Remove(dialog); //remove the dialog from the container
+
+                                    return HandleOverlayOnHide(settings, window);
+                                    //window.overlayBox.Visibility = System.Windows.Visibility.Hidden; //deactive the overlay effect
+
+                                }))).ContinueWith(y3 => y).Unwrap();
+                            });
+                        }).Unwrap();
+                    }).Unwrap().Unwrap();
+                }));
+            }).Unwrap();
+        }
+        /// <summary>
+        /// Creates a PasswordDialog inside of the current window.
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="title"></param>
+        /// <param name="message"></param>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public static Task<PasswordDialogData> ShowPasswordAsync(this MetroWindow window, string title, string message, PasswordDialogSettings settings = null)
+        {
+            window.Dispatcher.VerifyAccess();
+            return HandleOverlayOnShow(settings, window).ContinueWith(z =>
+            {
+                return (Task<PasswordDialogData>)window.Dispatcher.Invoke(new Func<Task<PasswordDialogData>>(() =>
+                {
+                    if (settings == null)
+                    {
+                        settings = new PasswordDialogSettings();
+                    }
+
+                    //create the dialog control
+                    PasswordDialog dialog = new PasswordDialog(window, settings)
+                    {
+                        Title = title,
+                        Message = message
+                    };
+
+                    SizeChangedEventHandler sizeHandler = SetupAndOpenDialog(window, dialog);
+                    dialog.SizeChangedHandler = sizeHandler;
+
+                    return dialog.WaitForLoadAsync().ContinueWith(x =>
+                    {
+                        if (DialogOpened != null)
+                        {
+                            window.Dispatcher.BeginInvoke(new Action(() => DialogOpened(window, new DialogStateChangedEventArgs())));
+                        }
+
+                        return dialog.WaitForButtonPressAsync().ContinueWith(y =>
+                        {
+                            //once a button as been clicked, begin removing the dialog.
+
+                            dialog.OnClose();
+
+                            if (DialogClosed != null)
+                            {
+                                window.Dispatcher.BeginInvoke(new Action(() => DialogClosed(window, new DialogStateChangedEventArgs())));
+                            }
+
+                            Task closingTask = (Task)window.Dispatcher.Invoke(new Func<Task>(() => dialog._WaitForCloseAsync()));
+                            return closingTask.ContinueWith(a =>
+                            {
+                                return ((Task)window.Dispatcher.Invoke(new Func<Task>(() =>
+                                {
+                                    window.SizeChanged -= sizeHandler;
+
+                                    window.metroDialogContainer.Children.Remove(dialog); //remove the dialog from the container
+
+                                    return HandleOverlayOnHide(settings, window);
+                                    //window.overlayBox.Visibility = System.Windows.Visibility.Hidden; //deactive the overlay effect
+
+                                }))).ContinueWith(y3 => y).Unwrap();
+                            });
+                        }).Unwrap();
+                    }).Unwrap().Unwrap();
+                }));
+            }).Unwrap();
+        }
+        /// <summary>
         /// Creates a LoginDialog inside of the current window.
         /// </summary>
         /// <param name="window">The window that is the parent of the dialog.</param>
@@ -33,7 +167,7 @@ namespace MahApps.Metro.Controls.Dialogs
                     //create the dialog control
                     LoginDialog dialog = new LoginDialog(window, settings)
                     {
-                        Title = title, 
+                        Title = title,
                         Message = message
                     };
 
@@ -98,8 +232,8 @@ namespace MahApps.Metro.Controls.Dialogs
                     //create the dialog control
                     var dialog = new InputDialog(window, settings)
                     {
-                        Title = title, 
-                        Message = message, 
+                        Title = title,
+                        Message = message,
                         Input = settings.DefaultText
                     };
 
@@ -165,8 +299,8 @@ namespace MahApps.Metro.Controls.Dialogs
                     //create the dialog control
                     var dialog = new MessageDialog(window, settings)
                     {
-                        Message = message, 
-                        Title = title, 
+                        Message = message,
+                        Title = title,
                         ButtonStyle = style
                     };
 
@@ -228,8 +362,8 @@ namespace MahApps.Metro.Controls.Dialogs
                 {
                     var dialog = new ProgressDialog(window)
                     {
-                        Message = message, 
-                        Title = title, 
+                        Message = message,
+                        Title = title,
                         IsCancelable = isCancelable
                     };
 
@@ -281,7 +415,7 @@ namespace MahApps.Metro.Controls.Dialogs
         {
             return (settings == null || settings.AnimateHide ? window.HideOverlayAsync() : Task.Factory.StartNew(() => window.Dispatcher.Invoke(new Action(window.HideOverlay))));
         }
-        
+
         private static Task HandleOverlayOnShow(MetroDialogSettings settings, MetroWindow window)
         {
             return (settings == null || settings.AnimateShow ? window.ShowOverlayAsync() : Task.Factory.StartNew(() => window.Dispatcher.Invoke(new Action(window.ShowOverlay))));
@@ -303,7 +437,7 @@ namespace MahApps.Metro.Controls.Dialogs
             if (window.metroDialogContainer.Children.Contains(dialog))
                 throw new InvalidOperationException("The provided dialog is already visible in the specified window.");
 
-            return HandleOverlayOnShow(settings,window).ContinueWith(z =>
+            return HandleOverlayOnShow(settings, window).ContinueWith(z =>
             {
                 dialog.Dispatcher.Invoke(new Action(() =>
                 {
@@ -355,7 +489,7 @@ namespace MahApps.Metro.Controls.Dialogs
                 {
                     window.metroDialogContainer.Children.Remove(dialog); //remove the dialog from the container
 
-                    return HandleOverlayOnHide(settings,window);
+                    return HandleOverlayOnHide(settings, window);
                 }));
             }).Unwrap();
         }
@@ -421,15 +555,15 @@ namespace MahApps.Metro.Controls.Dialogs
         {
             var win = new MetroWindow
             {
-                ShowInTaskbar = false, 
-                ShowActivated = true, 
-                Topmost = true, 
-                ResizeMode = ResizeMode.NoResize, 
-                WindowStyle = WindowStyle.None, 
-                WindowStartupLocation = WindowStartupLocation.CenterScreen, 
-                ShowTitleBar = false, 
-                ShowCloseButton = false, 
-                WindowTransitionsEnabled = false, 
+                ShowInTaskbar = false,
+                ShowActivated = true,
+                Topmost = true,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStyle = WindowStyle.None,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ShowTitleBar = false,
+                ShowCloseButton = false,
+                WindowTransitionsEnabled = false,
                 Background = dialog.Background
             };
 
@@ -448,7 +582,7 @@ namespace MahApps.Metro.Controls.Dialogs
             win.Content = dialog;
 
             EventHandler closedHandler = null;
-            closedHandler = (sender, args) => 
+            closedHandler = (sender, args) =>
             {
                 win.Closed -= closedHandler;
                 dialog.ParentDialogWindow = null;
