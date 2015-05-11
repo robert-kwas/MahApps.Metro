@@ -9,7 +9,7 @@ namespace MahApps.Metro.Controls.Dialogs
     {
         private const string DefaultCurrentPasswordWatermark = "Current Password...";
         private const string DefaultNewPasswordWatermark = "New Password...";
-        private const string DefaultValidationPasswordWatermark = "Validate New Password...";
+        private const string DefaultValidationPasswordWatermark = "Retype Your New Password...";
         private const Visibility DefaultCurrentPasswordVisibility = Visibility.Visible;
         private const bool DefaultEnablePasswordPreview = false;
 
@@ -19,7 +19,7 @@ namespace MahApps.Metro.Controls.Dialogs
             NewPasswordWatermark = DefaultNewPasswordWatermark;
             ValidationPasswordWatermark = DefaultValidationPasswordWatermark;
             CurrentPasswordVisibility = DefaultCurrentPasswordVisibility;
-            AffirmativeButtonText = "Change Password";
+            AffirmativeButtonText = "Set Password";
             NegativeButtonText = "Cancel";
             EnablePasswordPreview = DefaultEnablePasswordPreview;
         }
