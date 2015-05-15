@@ -9,12 +9,14 @@ namespace MahApps.Metro.Controls.Dialogs
     {
         private const string DefaultPasswordWatermark = "Password...";
         private const Visibility DefaultNegativeButtonVisibility = Visibility.Collapsed;
+        private const Visibility DefaultFirstAuxiliaryButtonVisibility = Visibility.Collapsed;
         private const bool DefaultEnablePasswordPreview = false;
 
         public PasswordDialogSettings()
         {
             PasswordWatermark = DefaultPasswordWatermark;
             NegativeButtonVisibility = DefaultNegativeButtonVisibility;
+            FirstAuxiliaryButtonVisibility = DefaultFirstAuxiliaryButtonVisibility;
             AffirmativeButtonText = "OK";
             EnablePasswordPreview = DefaultEnablePasswordPreview;
         }
@@ -23,12 +25,15 @@ namespace MahApps.Metro.Controls.Dialogs
 
         public Visibility NegativeButtonVisibility { get; set; }
 
+        public Visibility FirstAuxiliaryButtonVisibility { get; set; }
+
         public bool EnablePasswordPreview { get; set; }
     }
 
     public class PasswordDialogData
     {
         public string Password { get; set; }
+        public bool RecoverPassword { get; set; }
     }
 
     public partial class PasswordDialog : BaseMetroDialog
@@ -44,6 +49,8 @@ namespace MahApps.Metro.Controls.Dialogs
             InitializeComponent();
             PasswordWatermark = settings.PasswordWatermark;
             NegativeButtonButtonVisibility = settings.NegativeButtonVisibility;
+            FirstAuxiliaryButtonButtonVisibility = settings.FirstAuxiliaryButtonVisibility;
+
             if (settings.EnablePasswordPreview)
             {
                 object resource = Application.Current.FindResource("Win8MetroPasswordBox");
@@ -70,6 +77,9 @@ namespace MahApps.Metro.Controls.Dialogs
             RoutedEventHandler affirmativeHandler = null;
             KeyEventHandler affirmativeKeyHandler = null;
 
+            RoutedEventHandler firstAuxHandler = null;
+            KeyEventHandler firstAuxKeyHandler = null;
+
             KeyEventHandler escapeKeyHandler = null;
 
             Action cleanUpHandlers = () =>
@@ -80,9 +90,11 @@ namespace MahApps.Metro.Controls.Dialogs
 
                 PART_NegativeButton.Click -= negativeHandler;
                 PART_AffirmativeButton.Click -= affirmativeHandler;
+                PART_FirstAuxiliaryButton.Click -= firstAuxHandler;
 
                 PART_NegativeButton.KeyDown -= negativeKeyHandler;
                 PART_AffirmativeButton.KeyDown -= affirmativeKeyHandler;
+                PART_FirstAuxiliaryButton.KeyDown -= firstAuxKeyHandler;
             };
 
             escapeKeyHandler = (sender, e) =>
@@ -114,6 +126,16 @@ namespace MahApps.Metro.Controls.Dialogs
                 }
             };
 
+            firstAuxKeyHandler = (sender, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    cleanUpHandlers();
+
+                    tcs.TrySetResult(new PasswordDialogData { RecoverPassword = true });
+                }
+            };
+
             negativeHandler = (sender, e) =>
             {
                 cleanUpHandlers();
@@ -132,8 +154,18 @@ namespace MahApps.Metro.Controls.Dialogs
                 e.Handled = true;
             };
 
+            firstAuxHandler = (sender, e) =>
+            {
+                cleanUpHandlers();
+
+                tcs.TrySetResult(new PasswordDialogData { RecoverPassword = true });
+
+                e.Handled = true;
+            };
+
             PART_NegativeButton.KeyDown += negativeKeyHandler;
             PART_AffirmativeButton.KeyDown += affirmativeKeyHandler;
+            PART_FirstAuxiliaryButton.KeyDown += firstAuxKeyHandler;
 
             PART_TextBox.KeyDown += affirmativeKeyHandler;
 
@@ -141,6 +173,7 @@ namespace MahApps.Metro.Controls.Dialogs
 
             PART_NegativeButton.Click += negativeHandler;
             PART_AffirmativeButton.Click += affirmativeHandler;
+            PART_FirstAuxiliaryButton.Click += firstAuxHandler;
 
             return tcs.Task;
         }
@@ -165,6 +198,8 @@ namespace MahApps.Metro.Controls.Dialogs
         public static readonly DependencyProperty AffirmativeButtonTextProperty = DependencyProperty.Register("AffirmativeButtonText", typeof(string), typeof(PasswordDialog), new PropertyMetadata("OK"));
         public static readonly DependencyProperty NegativeButtonTextProperty = DependencyProperty.Register("NegativeButtonText", typeof(string), typeof(PasswordDialog), new PropertyMetadata("Cancel"));
         public static readonly DependencyProperty NegativeButtonButtonVisibilityProperty = DependencyProperty.Register("NegativeButtonButtonVisibility", typeof(Visibility), typeof(PasswordDialog), new PropertyMetadata(Visibility.Collapsed));
+        public static readonly DependencyProperty FirstAuxiliaryButtonTextProperty = DependencyProperty.Register("FirstAuxiliaryButtonText", typeof(string), typeof(PasswordDialog), new PropertyMetadata("Forgot Password?"));
+        public static readonly DependencyProperty FirstAuxiliaryButtonButtonVisibilityProperty = DependencyProperty.Register("FirstAuxiliaryButtonButtonVisibility", typeof(Visibility), typeof(PasswordDialog), new PropertyMetadata(Visibility.Collapsed));
 
         public string Message
         {
@@ -200,6 +235,18 @@ namespace MahApps.Metro.Controls.Dialogs
         {
             get { return (Visibility)GetValue(NegativeButtonButtonVisibilityProperty); }
             set { SetValue(NegativeButtonButtonVisibilityProperty, value); }
+        }
+
+        public Visibility FirstAuxiliaryButtonButtonVisibility
+        {
+            get { return (Visibility)GetValue(FirstAuxiliaryButtonButtonVisibilityProperty); }
+            set { SetValue(FirstAuxiliaryButtonButtonVisibilityProperty, value); }
+        }
+
+        public string FirstAuxiliaryButtonText
+        {
+            get { return (string)GetValue(FirstAuxiliaryButtonTextProperty); }
+            set { SetValue(FirstAuxiliaryButtonTextProperty, value); }
         }
     }
 }
