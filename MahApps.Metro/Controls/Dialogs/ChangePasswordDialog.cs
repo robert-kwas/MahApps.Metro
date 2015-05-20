@@ -16,6 +16,7 @@ namespace MahApps.Metro.Controls.Dialogs
         private const Visibility DefaultCurrentPasswordVisibility = Visibility.Visible;
         private const Visibility DefaultRecoveryEmailVisibility = Visibility.Collapsed;
         private const Visibility DefaultRecoveryEmailMessageVisibility = Visibility.Collapsed;
+        private const Visibility DefaultAuxiliaryButtonVisibility = Visibility.Collapsed;
         private const bool DefaultEnablePasswordPreview = false;
 
         public ChangePasswordDialogSettings()
@@ -29,6 +30,7 @@ namespace MahApps.Metro.Controls.Dialogs
             RecoveryEmailMessage = DefaultRecoveryEmailMessage;
             RecoveryEmailMessageVisibility = DefaultRecoveryEmailMessageVisibility;
             ValidateEmailWatermark = DefaultValidateEmailWatermark;
+            AuxiliaryButtonVisibility = DefaultAuxiliaryButtonVisibility;
             AffirmativeButtonText = "Set Password";
             NegativeButtonText = "Cancel";
             EnablePasswordPreview = DefaultEnablePasswordPreview;
@@ -55,6 +57,8 @@ namespace MahApps.Metro.Controls.Dialogs
         public Visibility ValidateEmailVisibility { get; set; }
 
         public Visibility CurrentPasswordVisibility { get; set; }
+        
+        public Visibility AuxiliaryButtonVisibility { get; set; }
 
         public bool EnablePasswordPreview { get; set; }
     }
@@ -67,6 +71,7 @@ namespace MahApps.Metro.Controls.Dialogs
         public string RecoveryEmail { get; set; }
         public string RecoveryEmailMessage { get; set; }
         public string ValidateEmail { get; set; }
+        public bool RecoverPassword { get; set; }
     }
 
     public partial class ChangePasswordDialog : BaseMetroDialog
@@ -91,6 +96,7 @@ namespace MahApps.Metro.Controls.Dialogs
             RecoveryEmailMessage = settings.RecoveryEmailMessage;
             ValidateEmailWatermark = settings.ValidateEmailWatermark;
             ValidateEmailVisibility = settings.RecoveryEmailVisibility;
+            AuxiliaryButtonVisibility = settings.AuxiliaryButtonVisibility;
 
             if (settings.EnablePasswordPreview)
             {
@@ -119,6 +125,9 @@ namespace MahApps.Metro.Controls.Dialogs
             RoutedEventHandler affirmativeHandler = null;
             KeyEventHandler affirmativeKeyHandler = null;
 
+            RoutedEventHandler auxHandler = null;
+            KeyEventHandler auxKeyHandler = null;
+
             KeyEventHandler escapeKeyHandler = null;
 
             Action cleanUpHandlers = () =>
@@ -129,9 +138,11 @@ namespace MahApps.Metro.Controls.Dialogs
 
                 PART_NegativeButton.Click -= negativeHandler;
                 PART_AffirmativeButton.Click -= affirmativeHandler;
+                PART_AffirmativeButton.Click -= auxHandler;
 
                 PART_NegativeButton.KeyDown -= negativeKeyHandler;
                 PART_AffirmativeButton.KeyDown -= affirmativeKeyHandler;
+                PART_AffirmativeButton.KeyDown -= auxKeyHandler;
             };
 
             escapeKeyHandler = (sender, e) =>
@@ -163,6 +174,16 @@ namespace MahApps.Metro.Controls.Dialogs
                 }
             };
 
+            auxKeyHandler = (sender, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    cleanUpHandlers();
+
+                    tcs.TrySetResult(new ChangePasswordDialogData { RecoverPassword = true });
+                }
+            };
+
             negativeHandler = (sender, e) =>
             {
                 cleanUpHandlers();
@@ -181,8 +202,18 @@ namespace MahApps.Metro.Controls.Dialogs
                 e.Handled = true;
             };
 
+            auxHandler = (sender, e) =>
+            {
+                cleanUpHandlers();
+
+                tcs.TrySetResult(new ChangePasswordDialogData { RecoverPassword = true });
+
+                e.Handled = true;
+            };
+
             PART_NegativeButton.KeyDown += negativeKeyHandler;
             PART_AffirmativeButton.KeyDown += affirmativeKeyHandler;
+            PART_AuxiliaryButton.KeyDown += auxKeyHandler;
 
             PART_PasswordBox.KeyDown += affirmativeKeyHandler;
             PART_PasswordBox2.KeyDown += affirmativeKeyHandler;
@@ -194,6 +225,7 @@ namespace MahApps.Metro.Controls.Dialogs
 
             PART_NegativeButton.Click += negativeHandler;
             PART_AffirmativeButton.Click += affirmativeHandler;
+            PART_AuxiliaryButton.Click += auxHandler;
 
             return tcs.Task;
         }
@@ -235,6 +267,8 @@ namespace MahApps.Metro.Controls.Dialogs
         public static readonly DependencyProperty ValidateEmailProperty = DependencyProperty.Register("ValidateEmailMessage", typeof(string), typeof(ChangePasswordDialog), new PropertyMetadata(default(string)));
         public static readonly DependencyProperty ValidateEmailWatermarkProperty = DependencyProperty.Register("ValidateEmailWatermark", typeof(string), typeof(ChangePasswordDialog), new PropertyMetadata(default(string)));
         public static readonly DependencyProperty ValidateEmailVisibilityProperty = DependencyProperty.Register("ValidateEmailVisibility", typeof(Visibility), typeof(ChangePasswordDialog), new PropertyMetadata(Visibility.Collapsed));
+        public static readonly DependencyProperty AuxiliaryButtonTextProperty = DependencyProperty.Register("AuxiliaryButtonText", typeof(string), typeof(ChangePasswordDialog), new PropertyMetadata("Forgot Password?"));
+        public static readonly DependencyProperty AuxiliaryButtonVisibilityProperty = DependencyProperty.Register("AuxiliaryButtonVisibility", typeof(Visibility), typeof(ChangePasswordDialog), new PropertyMetadata(Visibility.Collapsed));
 
         public string Message
         {
@@ -342,6 +376,18 @@ namespace MahApps.Metro.Controls.Dialogs
         {
             get { return (Visibility)GetValue(ValidateEmailVisibilityProperty); }
             set { SetValue(ValidateEmailVisibilityProperty, value); }
+        }
+
+        public Visibility AuxiliaryButtonVisibility
+        {
+            get { return (Visibility)GetValue(AuxiliaryButtonVisibilityProperty); }
+            set { SetValue(AuxiliaryButtonVisibilityProperty, value); }
+        }
+
+        public string AuxiliaryButtonText
+        {
+            get { return (string)GetValue(AuxiliaryButtonTextProperty); }
+            set { SetValue(AuxiliaryButtonTextProperty, value); }
         }
     }
 }
