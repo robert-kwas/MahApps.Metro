@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -169,8 +170,11 @@ namespace MahApps.Metro.Controls.Dialogs
             {
                 if (e.Key == Key.Enter)
                 {
-                    cleanUpHandlers();
-                    tcs.TrySetResult(new ChangePasswordDialogData { CurrentPassword = PART_PasswordBox.Password, NewPassword = PART_PasswordBox2.Password, ValidatePassword = PART_PasswordBox3.Password, RecoveryEmail = PART_TextBox.Text, ValidateEmail = PART_TextBox2.Text });
+                    if (EmailValidation())
+                    {
+                        cleanUpHandlers();
+                        tcs.TrySetResult(new ChangePasswordDialogData { CurrentPassword = PART_PasswordBox.Password, NewPassword = PART_PasswordBox2.Password, ValidatePassword = PART_PasswordBox3.Password, RecoveryEmail = PART_TextBox.Text, ValidateEmail = PART_TextBox2.Text });
+                    }
                 }
             };
 
@@ -195,9 +199,12 @@ namespace MahApps.Metro.Controls.Dialogs
 
             affirmativeHandler = (sender, e) =>
             {
-                cleanUpHandlers();
+                if (EmailValidation())
+                {
+                    cleanUpHandlers();
 
-                tcs.TrySetResult(new ChangePasswordDialogData { CurrentPassword = PART_PasswordBox.Password, NewPassword = PART_PasswordBox2.Password, ValidatePassword = PART_PasswordBox3.Password, RecoveryEmail = PART_TextBox.Text, ValidateEmail = PART_TextBox2.Text });
+                    tcs.TrySetResult(new ChangePasswordDialogData { CurrentPassword = PART_PasswordBox.Password, NewPassword = PART_PasswordBox2.Password, ValidatePassword = PART_PasswordBox3.Password, RecoveryEmail = PART_TextBox.Text, ValidateEmail = PART_TextBox2.Text });
+                }
 
                 e.Handled = true;
             };
@@ -247,6 +254,26 @@ namespace MahApps.Metro.Controls.Dialogs
                     PART_TextBox2.SetResourceReference(ForegroundProperty, "BlackColorBrush");
                     break;
             }
+        }
+
+        private bool EmailValidation()
+        {
+            bool isValid = true;
+            PART_ErrorText.Visibility = System.Windows.Visibility.Collapsed;
+
+            if (!string.IsNullOrEmpty(this.PART_TextBox.Text) && !string.IsNullOrEmpty(this.PART_TextBox2.Text))
+            {
+                if (!Regex.IsMatch(this.PART_TextBox.Text, @"^(?!\S*\.\.)\S+\@\S+\.\S+$", RegexOptions.IgnoreCase) || !Regex.IsMatch(this.PART_TextBox2.Text, @"^(?!\S*\.\.)\S+\@\S+\.\S+$", RegexOptions.IgnoreCase))
+                    isValid = false;
+
+                else
+                    isValid = true;
+            }
+
+            if (!isValid)
+                PART_ErrorText.Visibility = System.Windows.Visibility.Visible;
+
+            return isValid;
         }
 
         public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(ChangePasswordDialog), new PropertyMetadata(default(string)));
